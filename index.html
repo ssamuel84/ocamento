@@ -186,7 +186,7 @@
 
         .add-instrument,
         #gerar-orcamento,
-        #gerar-pdf {
+        #gerar-e-compartilhar { /* ID alterado */
             background-color: var(--cor-botoes);
             color: white;
             border: none;
@@ -202,7 +202,7 @@
         }
         .add-instrument:hover,
         #gerar-orcamento:hover,
-        #gerar-pdf:hover {
+        #gerar-e-compartilhar:hover { /* ID alterado */
             background-color: #316491; /* Tom mais escuro do azul */
             transform: translateY(-2px);
         }
@@ -354,7 +354,7 @@
             }
             .add-instrument,
             #gerar-orcamento,
-            #gerar-pdf {
+            #gerar-e-compartilhar { /* ID alterado */
                 width: 100%;
             }
             .event-details-line {
@@ -402,7 +402,7 @@
                 <div class="instrument-row">
                     <div>
                         <label for="instrumento-0">Nome do Instrumento:</label>
-                        <input type="text" class="instrumento-nome" id="instrumento-0" name="instrumento[]" required value="Violino">
+                        <input type="text" class="instrumento-nome" id="instrumento-0" name="instrumento[]" required value="Piano">
                     </div>
                     <div>
                         <label for="quantidade-0">Qtde:</label>
@@ -410,35 +410,7 @@
                     </div>
                     <div>
                         <label for="valor-0">Valor Unitário (R$):</label>
-                        <input type="number" step="0.01" class="instrumento-valor" id="valor-0" name="valor[]" value="500.00" required>
-                    </div>
-                </div>
-                <div class="instrument-row">
-                    <div>
-                        <label for="instrumento-1">Nome do Instrumento:</label>
-                        <input type="text" class="instrumento-nome" id="instrumento-1" name="instrumento[]" required value="Piano">
-                    </div>
-                    <div>
-                        <label for="quantidade-1">Qtde:</label>
-                        <input type="number" class="instrumento-qtde" id="quantidade-1" name="quantidade[]" value="1" min="1" required>
-                    </div>
-                    <div>
-                        <label for="valor-1">Valor Unitário (R$):</label>
-                        <input type="number" step="0.01" class="instrumento-valor" id="valor-1" name="valor[]" value="2000.00" required>
-                    </div>
-                </div>
-                <div class="instrument-row">
-                    <div>
-                        <label for="instrumento-2">Nome do Instrumento:</label>
-                        <input type="text" class="instrumento-nome" id="instrumento-2" name="instrumento[]" required value="Saxofone">
-                    </div>
-                    <div>
-                        <label for="quantidade-2">Qtde:</label>
-                        <input type="number" class="instrumento-qtde" id="quantidade-2" name="quantidade[]" value="1" min="1" required>
-                    </div>
-                    <div>
-                        <label for="valor-2">Valor Unitário (R$):</label>
-                        <input type="number" step="0.01" class="instrumento-valor" id="valor-2" name="valor[]" value="800.00" required>
+                        <input type="number" step="0.01" class="instrumento-valor" id="valor-0" name="valor[]" value="2000.00" required>
                     </div>
                 </div>
             </div>
@@ -484,7 +456,7 @@
                 <strong>Observações:</strong> <pre id="observacoes-text"></pre>
             </div>
             
-            <button id="gerar-pdf">Salvar como PDF</button>
+            <button id="gerar-e-compartilhar">Gerar e Compartilhar Orçamento (PDF)</button>
         </div>
     </div>
 
@@ -495,16 +467,16 @@
         const orcamentoPreview = document.getElementById('orcamento-preview');
         const previewCliente = document.getElementById('preview-cliente');
         const previewEvento = document.getElementById('preview-evento');
-        const previewData = document.getElementById('preview-data');       // Novo elemento para Data
-        const previewHorario = document.getElementById('preview-horario'); // Novo elemento para Horário
+        const previewData = document.getElementById('preview-data');
+        const previewHorario = document.getElementById('preview-horario');
         const previewPlaylistLink = document.getElementById('preview-playlist-link');
-        const playlistRow = document.getElementById('preview-playlist-box'); // Alterado para o novo div
+        const playlistRow = document.getElementById('preview-playlist-box');
         const previewInstrumentosTBody = document.querySelector('#preview-instrumentos tbody');
         const previewTotal = document.getElementById('preview-total');
-        const observacoesText = document.getElementById('observacoes-text'); // Alterado para o novo span
-        const gerarPdfBotao = document.getElementById('gerar-pdf');
+        const observacoesText = document.getElementById('observacoes-text');
+        const gerarECompartilharBotao = document.getElementById('gerar-e-compartilhar'); // ID alterado
 
-        let instrumentoCounter = 3; // Começa em 3 pois já temos 3 instrumentos padrão
+        let instrumentoCounter = 1; // Começa em 1 pois já temos 1 instrumento padrão (Piano)
 
         // Adiciona um novo campo de instrumento dinamicamente
         adicionarInstrumentoBotao.addEventListener('click', function() {
@@ -532,7 +504,7 @@
         // Delegação de evento para remover instrumento (funciona para botões existentes e futuros)
         instrumentosContainer.addEventListener('click', function(event) {
             if (event.target.classList.contains('remove-instrument')) {
-                event.target.closest('.instrument-row').remove();
+                event.target.closest('.instrumento-row').remove();
                 atualizarPrevia(); // Atualiza a prévia após remover
             }
         });
@@ -614,8 +586,8 @@
         // Evento para gerar a prévia do orçamento
         gerarOrcamentoBotao.addEventListener('click', atualizarPrevia);
 
-        // Função para gerar o PDF
-        gerarPdfBotao.addEventListener('click', function() {
+        // Função para Gerar PDF e Compartilhar
+        gerarECompartilharBotao.addEventListener('click', async function() { // Usar async para await
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             let y = 20;
@@ -721,11 +693,32 @@
             doc.setFontSize(12);
             doc.setTextColor(51, 51, 51); // Cor do texto
 
-            const observacoesTextContent = observacoesText.textContent; // Pega do elemento correto
+            const observacoesTextContent = observacoesText.textContent;
             const splitText = doc.splitTextToSize(observacoesTextContent, maxWidth);
             doc.text(splitText, margin, y);
 
-            doc.save('Orcamento_Musical.pdf');
+            // Geração do PDF como Blob para compartilhamento
+            const pdfBlob = doc.output('blob');
+            const fileName = `Orcamento_Musical_${previewCliente.textContent.replace(/\s/g, '_') || 'Cliente'}_${previewEvento.textContent.replace(/\s/g, '_') || 'Evento'}.pdf`;
+
+            if (navigator.share && navigator.canShare && navigator.canShare({ files: [new File([pdfBlob], fileName, { type: 'application/pdf' })] })) {
+                try {
+                    await navigator.share({
+                        files: [new File([pdfBlob], fileName, { type: 'application/pdf' })],
+                        title: `Orçamento Musical - ${previewEvento.textContent}`,
+                        text: `Olá! Compartilho o orçamento musical para o evento "${previewEvento.textContent}" em ${previewData.textContent} às ${previewHorario.textContent}.`,
+                    });
+                    console.log('PDF compartilhado com sucesso!');
+                } catch (error) {
+                    console.error('Erro ao compartilhar PDF:', error);
+                    alert('Não foi possível compartilhar o PDF diretamente. Ele será baixado para o seu dispositivo.');
+                    // Fallback para download se o compartilhamento falhar ou for cancelado
+                    doc.save(fileName);
+                }
+            } else {
+                alert('Seu navegador ou dispositivo não suporta o compartilhamento direto de arquivos. O PDF será baixado.');
+                doc.save(fileName); // Fallback para download se o compartilhamento não for suportado
+            }
         });
 
         // Chamar a prévia inicial (com os valores padrão)
