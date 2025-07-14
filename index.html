@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orçamento de Orquestra - Mariana Jesus</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+    <style>
+        /* Estilos Musicais e Cores Vibrantes */
+        :root {
+            --cor-primaria: #8B0000; /* Vermelho Escuro - como a cortina de um palco */
+            --cor-secundaria: #FFD700; /* Dourado - instrumentos de metal */
+            --cor-fundo: #F5F5DC; /* Bege Suave - partitura antiga */
+            --cor-texto: #333;
+            --cor-botoes: #4682B4; /* Azul Aço - tranquilidade da música */
+            --cor-destaque: #DDA0DD; /* Púrpura - realeza, sofisticação */
+            --cor-preview-fundo: #FFFFFF; /* Fundo mais claro para o modal/prévia */
+            --cor-preview-borda: #A52A2A; /* Um tom de marrom avermelhado para a borda do modal */
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--cor-fundo), #E0E0B0);
+            color: var(--cor-texto);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 30px auto;
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden; /* Para garantir que elementos de fundo não transbordem */
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            left: -50px;
+            width: 150px;
+            height: 150px;
+            background: radial-gradient(circle, var(--cor-secundaria) 10%, transparent 70%);
+            border-radius: 50%;
+            opacity: 0.3;
+            filter: blur(20px);
+        }
+        .container::after {
+            content: '';
+            position: absolute;
+            bottom: -50px;
+            right: -50px;
+            width: 150px;
+            height: 150px;
+            background: radial-gradient(circle, var(--cor-primaria) 10%, transparent 70%);
+            border-radius: 50%;
+            opacity: 0.3;
+            filter: blur(20px);
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            color: var(--cor-primaria);
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 2.8em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        h1 .musical-note {
+            color: var(--cor-secundaria);
+            font-size: 0.8em;
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        h1 .note-left { left: 30%; transform: translateX(-50%) rotate(-15deg); }
+        h1 .note-right { left: 70%; transform: translateX(-50%) rotate(15deg); }
+
+
+        h2 {
+            font-family: 'Playfair Display', serif;
+            color: var(--cor-botoes);
+            border-bottom: 2px solid var(--cor-destaque);
+            padding-bottom: 10px;
+            margin-top: 30px;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .contact-info {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+            color: var(--cor-primaria);
+            font-weight: bold;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 700;
+            color: var(--cor-texto);
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="url"],
+        input[type="date"],
+        input[type="time"],
+        textarea {
+            width: calc(100% - 20px); /* Ajuste para padding */
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            background-color: #fcfcfc;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        input[type="url"]:focus,
+        input[type="date"]:focus,
+        input[type="time"]:focus,
+        textarea:focus {
+            border-color: var(--cor-destaque);
+            box-shadow: 0 0 8px rgba(var(--cor-destaque-rgb), 0.3); /* Usar RGB para shadow */
+            outline: none;
+        }
+        /* Definir RGB para --cor-destaque para uso em box-shadow */
+        body {
+            --cor-destaque-rgb: 221, 160, 221;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .instrument-row {
+            display: flex;
+            flex-wrap: wrap; /* Permite que os itens quebrem linha em telas menores */
+            gap: 15px;
+            margin-bottom: 15px;
+            align-items: flex-end;
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #eee;
+        }
+        .instrument-row > div {
+            flex: 1; /* Permite que os divs se expandam */
+            min-width: 150px; /* Largura mínima para evitar que fiquem muito pequenos */
+        }
+        .instrument-row button {
+            flex-shrink: 0; /* Impede que o botão encolha */
+            width: auto; /* Deixa o botão se ajustar ao conteúdo */
+        }
+
+
+        .remove-instrument {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background-color 0.3s ease;
+        }
+        .remove-instrument:hover {
+            background-color: #c82333;
+        }
+
+        .add-instrument,
+        #gerar-orcamento,
+        #gerar-pdf {
+            background-color: var(--cor-botoes);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 700;
+            display: block;
+            width: fit-content;
+            margin: 25px auto 10px auto;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        .add-instrument:hover,
+        #gerar-orcamento:hover,
+        #gerar-pdf:hover {
+            background-color: #316491; /* Tom mais escuro do azul */
+            transform: translateY(-2px);
+        }
+
+        /* --- Estilo do "Modal" (Prévia do Orçamento) Melhorado --- */
+        #orcamento-preview {
+            margin-top: 40px;
+            border: 3px solid var(--cor-preview-borda); /* Borda mais grossa */
+            padding: 30px;
+            border-radius: 20px; /* Bordas mais arredondadas */
+            background-color: var(--cor-preview-fundo); /* Fundo claro */
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2); /* Sombra mais pronunciada */
+            display: none; /* Inicia oculto */
+            position: relative;
+            overflow: hidden;
+            transition: all 0.5s ease-in-out; /* Transição suave para aparecer */
+        }
+
+        #orcamento-preview::before { /* Detalhe visual superior */
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 15px;
+            background: linear-gradient(to right, var(--cor-primaria), var(--cor-secundaria));
+            border-top-left-radius: 17px;
+            border-top-right-radius: 17px;
+        }
+        #orcamento-preview::after { /* Detalhe visual inferior */
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 15px;
+            background: linear-gradient(to right, var(--cor-secundaria), var(--cor-primaria));
+            border-bottom-left-radius: 17px;
+            border-bottom-right-radius: 17px;
+        }
+
+        #orcamento-preview h2 {
+            color: var(--cor-primaria);
+            text-align: center;
+            border-bottom: 2px dashed var(--cor-secundaria);
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+            font-size: 2.2em;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
+        }
+
+        #orcamento-preview p {
+            margin-bottom: 12px;
+            font-size: 1.1em;
+            padding-left: 10px; /* Leve identação */
+        }
+        #orcamento-preview p strong {
+            color: var(--cor-botoes);
+            min-width: 120px; /* Garante alinhamento para labels */
+            display: inline-block;
+        }
+        
+        /* Nova classe para a linha de evento/data/hora */
+        .event-details-line {
+            display: flex;
+            flex-wrap: wrap; /* Permite quebrar linha em telas pequenas */
+            gap: 15px; /* Espaço entre os itens */
+            align-items: baseline;
+            margin-bottom: 12px;
+            padding-left: 10px;
+        }
+        .event-details-line p {
+            margin: 0; /* Remove margem padrão dos parágrafos dentro */
+            font-size: 1.1em;
+        }
+
+
+        #preview-instrumentos {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 25px;
+            font-size: 0.95em;
+        }
+        #preview-instrumentos th,
+        #preview-instrumentos td {
+            border: 1px solid #e0e0e0; /* Borda mais suave para a tabela */
+            padding: 12px;
+            text-align: left;
+        }
+        #preview-instrumentos th {
+            background-color: var(--cor-secundaria);
+            color: var(--cor-primaria);
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-color: var(--cor-secundaria); /* Borda da cor do cabeçalho */
+        }
+        #preview-instrumentos td {
+            background-color: #fefefe;
+        }
+        #preview-instrumentos td:nth-child(2) { text-align: center; } /* Qtde */
+        #preview-instrumentos td:nth-child(3),
+        #preview-instrumentos td:nth-child(4) { text-align: right; } /* Valor Unitário e Subtotal */
+
+
+        .total-value {
+            font-size: 1.6em; /* Tamanho maior */
+            font-weight: bold;
+            margin-top: 30px;
+            text-align: right;
+            color: var(--cor-primaria);
+            padding-top: 20px;
+            border-top: 2px dashed var(--cor-destaque); /* Borda tracejada */
+            letter-spacing: 1px;
+        }
+
+        #preview-observacoes, #preview-playlist-box {
+            background-color: #fffaf0;
+            border: 1px dashed var(--cor-primaria);
+            padding: 18px; /* Mais padding */
+            border-radius: 10px; /* Mais arredondado */
+            font-style: italic;
+            white-space: pre-wrap; /* Para preservar quebras de linha do textarea */
+            margin-top: 25px;
+            line-height: 1.8; /* Melhor legibilidade */
+            color: #555;
+            font-size: 1.05em;
+        }
+        #preview-playlist-box strong {
+            color: var(--cor-botoes);
+        }
+
+        /* Responsividade Básica */
+        @media (max-width: 768px) {
+            .container {
+                margin: 15px;
+                padding: 20px;
+            }
+            h1 {
+                font-size: 2em;
+            }
+            .instrument-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .instrument-row > div {
+                min-width: unset;
+                width: 100%;
+            }
+            .add-instrument,
+            #gerar-orcamento,
+            #gerar-pdf {
+                width: 100%;
+            }
+            .event-details-line {
+                flex-direction: column;
+                gap: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>
+            <span class="musical-note note-left">🎵</span>
+            Orçamento Musical
+            <span class="musical-note note-right">🎶</span>
+        </h1>
+        <div class="contact-info">
+            <strong>Contato:</strong> Mariana Jesus - 094 98451 3565
+        </div>
+
+        <form id="orcamento-form">
+            <div class="form-group">
+                <label for="nome-cliente">Nome do Cliente:</label>
+                <input type="text" id="nome-cliente" name="nome-cliente" required>
+            </div>
+            <div class="form-group">
+                <label for="nome-evento">Nome do Evento:</label>
+                <input type="text" id="nome-evento" name="nome-evento" required>
+            </div>
+            <div class="form-group">
+                <label for="data-evento">Data do Evento:</label>
+                <input type="date" id="data-evento" name="data-evento" required>
+            </div>
+            <div class="form-group">
+                <label for="horario-evento">Horário do Evento:</label>
+                <input type="time" id="horario-evento" name="horario-evento" required>
+            </div>
+            <div class="form-group">
+                <label for="link-playlist">Link da Playlist (Opcional):</label>
+                <input type="url" id="link-playlist" name="link-playlist" placeholder="Ex: https://spotify.com/playlist/xyz">
+            </div>
+
+            <h2>Instrumentos</h2>
+            <div id="instrumentos-container">
+                <div class="instrument-row">
+                    <div>
+                        <label for="instrumento-0">Nome do Instrumento:</label>
+                        <input type="text" class="instrumento-nome" id="instrumento-0" name="instrumento[]" required value="Violino">
+                    </div>
+                    <div>
+                        <label for="quantidade-0">Qtde:</label>
+                        <input type="number" class="instrumento-qtde" id="quantidade-0" name="quantidade[]" value="1" min="1" required>
+                    </div>
+                    <div>
+                        <label for="valor-0">Valor Unitário (R$):</label>
+                        <input type="number" step="0.01" class="instrumento-valor" id="valor-0" name="valor[]" value="500.00" required>
+                    </div>
+                </div>
+                <div class="instrument-row">
+                    <div>
+                        <label for="instrumento-1">Nome do Instrumento:</label>
+                        <input type="text" class="instrumento-nome" id="instrumento-1" name="instrumento[]" required value="Piano">
+                    </div>
+                    <div>
+                        <label for="quantidade-1">Qtde:</label>
+                        <input type="number" class="instrumento-qtde" id="quantidade-1" name="quantidade[]" value="1" min="1" required>
+                    </div>
+                    <div>
+                        <label for="valor-1">Valor Unitário (R$):</label>
+                        <input type="number" step="0.01" class="instrumento-valor" id="valor-1" name="valor[]" value="2000.00" required>
+                    </div>
+                </div>
+                <div class="instrument-row">
+                    <div>
+                        <label for="instrumento-2">Nome do Instrumento:</label>
+                        <input type="text" class="instrumento-nome" id="instrumento-2" name="instrumento[]" required value="Saxofone">
+                    </div>
+                    <div>
+                        <label for="quantidade-2">Qtde:</label>
+                        <input type="number" class="instrumento-qtde" id="quantidade-2" name="quantidade[]" value="1" min="1" required>
+                    </div>
+                    <div>
+                        <label for="valor-2">Valor Unitário (R$):</label>
+                        <input type="number" step="0.01" class="instrumento-valor" id="valor-2" name="valor[]" value="800.00" required>
+                    </div>
+                </div>
+            </div>
+            <button type="button" id="adicionar-instrumento" class="add-instrument">Adicionar Outro Instrumento</button>
+
+            <div class="form-group">
+                <label for="observacoes">Observações:</label>
+                <textarea id="observacoes" name="observacoes" rows="3">Tocaremos 15 minutos antes, durante o evento conforme playlist, e 15 minutos depois.</textarea>
+            </div>
+
+            <button type="button" id="gerar-orcamento">Gerar Orçamento</button>
+        </form>
+
+        <div id="orcamento-preview">
+            <h2>Prévia do Orçamento</h2>
+            <p><strong>Cliente:</strong> <span id="preview-cliente"></span></p>
+            
+            <div class="event-details-line">
+                <p><strong>Evento:</strong> <span id="preview-evento"></span></p>
+                <p><strong>Data:</strong> <span id="preview-data"></span></p>
+                <p><strong>Horário:</strong> <span id="preview-horario"></span></p>
+            </div>
+            
+            <div id="preview-playlist-box" style="display: none;">
+                <strong>Link da Playlist:</strong> <a id="preview-playlist-link" href="#" target="_blank"></a>
+            </div>
+            
+            <h3>Detalhes dos Instrumentos:</h3>
+            <table id="preview-instrumentos">
+                <thead>
+                    <tr>
+                        <th>Instrumento</th>
+                        <th>Qtde</th>
+                        <th>Valor Unitário</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <p class="total-value"><strong>Total Geral:</strong> <span id="preview-total"></span></p>
+            
+            <div id="preview-observacoes">
+                <strong>Observações:</strong> <pre id="observacoes-text"></pre>
+            </div>
+            
+            <button id="gerar-pdf">Salvar como PDF</button>
+        </div>
+    </div>
+
+    <script>
+        const instrumentosContainer = document.getElementById('instrumentos-container');
+        const adicionarInstrumentoBotao = document.getElementById('adicionar-instrumento');
+        const gerarOrcamentoBotao = document.getElementById('gerar-orcamento');
+        const orcamentoPreview = document.getElementById('orcamento-preview');
+        const previewCliente = document.getElementById('preview-cliente');
+        const previewEvento = document.getElementById('preview-evento');
+        const previewData = document.getElementById('preview-data');       // Novo elemento para Data
+        const previewHorario = document.getElementById('preview-horario'); // Novo elemento para Horário
+        const previewPlaylistLink = document.getElementById('preview-playlist-link');
+        const playlistRow = document.getElementById('preview-playlist-box'); // Alterado para o novo div
+        const previewInstrumentosTBody = document.querySelector('#preview-instrumentos tbody');
+        const previewTotal = document.getElementById('preview-total');
+        const observacoesText = document.getElementById('observacoes-text'); // Alterado para o novo span
+        const gerarPdfBotao = document.getElementById('gerar-pdf');
+
+        let instrumentoCounter = 3; // Começa em 3 pois já temos 3 instrumentos padrão
+
+        // Adiciona um novo campo de instrumento dinamicamente
+        adicionarInstrumentoBotao.addEventListener('click', function() {
+            const novoInstrumentoDiv = document.createElement('div');
+            novoInstrumentoDiv.classList.add('instrument-row');
+            novoInstrumentoDiv.innerHTML = `
+                <div>
+                    <label for="instrumento-${instrumentoCounter}">Nome do Instrumento:</label>
+                    <input type="text" class="instrumento-nome" id="instrumento-${instrumentoCounter}" name="instrumento[]" required>
+                </div>
+                <div>
+                    <label for="quantidade-${instrumentoCounter}">Qtde:</label>
+                    <input type="number" class="instrumento-qtde" id="quantidade-${instrumentoCounter}" name="quantidade[]" value="1" min="1" required>
+                </div>
+                <div>
+                    <label for="valor-${instrumentoCounter}">Valor Unitário (R$):</label>
+                    <input type="number" step="0.01" class="instrumento-valor" id="valor-${instrumentoCounter}" name="valor[]" required>
+                </div>
+                <button type="button" class="remove-instrument">Remover</button>
+            `;
+            instrumentosContainer.appendChild(novoInstrumentoDiv);
+            instrumentoCounter++;
+        });
+
+        // Delegação de evento para remover instrumento (funciona para botões existentes e futuros)
+        instrumentosContainer.addEventListener('click', function(event) {
+            if (event.target.classList.contains('remove-instrument')) {
+                event.target.closest('.instrument-row').remove();
+                atualizarPrevia(); // Atualiza a prévia após remover
+            }
+        });
+
+        // Função para atualizar a prévia do orçamento
+        function atualizarPrevia() {
+            const nomeClienteValue = document.getElementById('nome-cliente').value;
+            const nomeEventoValue = document.getElementById('nome-evento').value;
+            const dataEventoValue = document.getElementById('data-evento').value;
+            const horarioEventoValue = document.getElementById('horario-evento').value;
+            const linkPlaylistValue = document.getElementById('link-playlist').value;
+            const observacoesFormValue = document.getElementById('observacoes').value;
+
+            // Preenche as informações do cliente e evento
+            previewCliente.textContent = nomeClienteValue || 'Não Informado';
+            previewEvento.textContent = nomeEventoValue || 'Não Informado';
+            
+            // Exibe a data e horário
+            if (dataEventoValue) {
+                const [ano, mes, dia] = dataEventoValue.split('-');
+                previewData.textContent = `${dia}/${mes}/${ano}`;
+            } else {
+                previewData.textContent = 'Não Informada';
+            }
+            previewHorario.textContent = horarioEventoValue || 'Não Informado';
+
+
+            if (linkPlaylistValue) {
+                previewPlaylistLink.textContent = linkPlaylistValue;
+                previewPlaylistLink.href = linkPlaylistValue;
+                playlistRow.style.display = 'block'; // Mostra o div que envolve o link
+            } else {
+                playlistRow.style.display = 'none'; // Oculta o div se não houver link
+            }
+
+            observacoesText.textContent = observacoesFormValue; // Usa o novo elemento
+
+            previewInstrumentosTBody.innerHTML = ''; // Limpa a tabela antes de preencher
+            let totalGeral = 0;
+
+            const allInstrumentRows = document.querySelectorAll('#instrumentos-container .instrument-row');
+
+            allInstrumentRows.forEach(row => {
+                const nomeInput = row.querySelector('.instrumento-nome');
+                const qtdeInput = row.querySelector('.instrumento-qtde');
+                const valorInput = row.querySelector('.instrumento-valor');
+
+                const nome = nomeInput.value || 'Instrumento Desconhecido';
+                const qtde = parseInt(qtdeInput.value) || 0;
+                const valor = parseFloat(valorInput.value) || 0;
+                const subtotal = qtde * valor;
+
+                if (qtde > 0 && valor > 0) { // Adiciona apenas instrumentos com quantidade e valor válidos
+                    const tr = previewInstrumentosTBody.insertRow();
+
+                    const tdNome = tr.insertCell();
+                    tdNome.textContent = nome;
+
+                    const tdQtde = tr.insertCell();
+                    tdQtde.textContent = qtde;
+                    tdQtde.style.textAlign = 'center';
+
+                    const tdValorUnitario = tr.insertCell();
+                    tdValorUnitario.textContent = valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                    tdValorUnitario.style.textAlign = 'right';
+
+                    const tdSubtotal = tr.insertCell();
+                    tdSubtotal.textContent = subtotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                    tdSubtotal.style.textAlign = 'right';
+
+                    totalGeral += subtotal;
+                }
+            });
+
+            previewTotal.textContent = totalGeral.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            orcamentoPreview.style.display = 'block'; // Mostra a seção de prévia
+        }
+
+        // Evento para gerar a prévia do orçamento
+        gerarOrcamentoBotao.addEventListener('click', atualizarPrevia);
+
+        // Função para gerar o PDF
+        gerarPdfBotao.addEventListener('click', function() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            let y = 20;
+            const lineHeight = 10;
+            const margin = 15;
+            const maxWidth = 180; // Largura máxima para texto
+
+            doc.setFont('Montserrat', 'bold');
+            doc.setFontSize(24);
+            doc.setTextColor(139, 0, 0); // Cor primaria (vermelho escuro)
+            doc.text('Orçamento Musical', 105, y, null, null, 'center');
+            y += lineHeight * 1.5;
+
+            doc.setFontSize(10);
+            doc.setTextColor(51, 51, 51); // Cor do texto
+            doc.text(`Contato: Mariana Jesus - 094 98451 3565`, 105, y, null, null, 'center');
+            y += lineHeight * 2;
+
+            doc.setFont('Montserrat', 'bold');
+            doc.setFontSize(16);
+            doc.setTextColor(70, 130, 180); // Cor dos botões (azul aço)
+            doc.text('Informações do Cliente', margin, y);
+            y += lineHeight * 0.8;
+            doc.setFont('Montserrat', 'normal');
+            doc.setFontSize(12);
+            doc.text(`Cliente: ${previewCliente.textContent}`, margin, y);
+            y += lineHeight;
+            doc.text(`Evento: ${previewEvento.textContent}`, margin, y);
+            
+            // Data e Horário na mesma linha no PDF
+            let dataHorarioPDF = '';
+            if (previewData.textContent && previewData.textContent !== 'Não Informada') {
+                dataHorarioPDF += `Data: ${previewData.textContent}`;
+            }
+            if (previewHorario.textContent && previewHorario.textContent !== 'Não Informado') {
+                dataHorarioPDF += (dataHorarioPDF ? ' - ' : '') + `Horário: ${previewHorario.textContent}`;
+            }
+            if (dataHorarioPDF) {
+                doc.text(dataHorarioPDF, margin, y + lineHeight); // Uma linha abaixo
+                y += lineHeight;
+            }
+            y += lineHeight; // Espaço após os dados do evento/data/hora
+
+            const linkPlaylistValue = document.getElementById('link-playlist').value;
+            if (linkPlaylistValue) {
+                doc.text(`Link da Playlist:`, margin, y);
+                doc.setTextColor(0, 0, 255); // Cor azul para o link
+                doc.textWithLink(linkPlaylistValue, margin + 35, y, { url: linkPlaylistValue });
+                doc.setTextColor(51, 51, 51); // Volta à cor do texto
+                y += lineHeight;
+            }
+            y += lineHeight * 0.5; // Espaçamento extra antes dos instrumentos
+
+            doc.setFont('Montserrat', 'bold');
+            doc.setFontSize(16);
+            doc.setTextColor(70, 130, 180); // Cor dos botões (azul aço)
+            doc.text('Detalhes dos Instrumentos', margin, y);
+            y += lineHeight;
+
+            // Cabeçalho da tabela
+            doc.setFont('Montserrat', 'bold');
+            doc.setFontSize(10);
+            doc.setFillColor(255, 215, 0); // Cor secundaria (dourado)
+            doc.setTextColor(139, 0, 0); // Cor primaria
+            doc.rect(margin, y, 180, 10, 'F'); // Fundo do cabeçalho
+            doc.text('Instrumento', margin + 2, y + 7);
+            doc.text('Qtde', margin + 80, y + 7);
+            doc.text('Valor Unit.', margin + 115, y + 7);
+            doc.text('Subtotal', margin + 155, y + 7);
+            y += 10;
+
+            doc.setFont('Montserrat', 'normal');
+            doc.setFontSize(10);
+            doc.setTextColor(51, 51, 51); // Cor do texto
+            const rows = document.querySelectorAll('#preview-instrumentos tbody tr');
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                const nome = cells[0].textContent;
+                const qtde = cells[1].textContent;
+                const valorUnitario = cells[2].textContent;
+                const subtotal = cells[3].textContent;
+
+                doc.text(nome, margin + 2, y + 7);
+                doc.text(qtde, margin + 80, y + 7);
+                doc.text(valorUnitario, margin + 115, y + 7);
+                doc.text(subtotal, margin + 155, y + 7);
+                y += 10;
+            });
+            y += lineHeight;
+
+            doc.setFont('Montserrat', 'bold');
+            doc.setFontSize(14);
+            doc.setTextColor(139, 0, 0); // Cor primaria
+            doc.text(`Total Geral: ${previewTotal.textContent}`, 195, y, null, null, 'right');
+            y += lineHeight * 2;
+
+            doc.setFont('Montserrat', 'bold');
+            doc.setFontSize(16);
+            doc.setTextColor(70, 130, 180); // Cor dos botões (azul aço)
+            doc.text('Observações:', margin, y);
+            y += lineHeight * 0.8;
+            doc.setFont('Montserrat', 'normal');
+            doc.setFontSize(12);
+            doc.setTextColor(51, 51, 51); // Cor do texto
+
+            const observacoesTextContent = observacoesText.textContent; // Pega do elemento correto
+            const splitText = doc.splitTextToSize(observacoesTextContent, maxWidth);
+            doc.text(splitText, margin, y);
+
+            doc.save('Orcamento_Musical.pdf');
+        });
+
+        // Chamar a prévia inicial (com os valores padrão)
+        document.addEventListener('DOMContentLoaded', atualizarPrevia);
+
+        // Adiciona listener para recalcular a prévia em tempo real ao mudar campos
+        document.getElementById('orcamento-form').addEventListener('input', function(event) {
+            if (event.target.classList.contains('instrumento-nome') ||
+                event.target.classList.contains('instrumento-qtde') ||
+                event.target.classList.contains('instrumento-valor') ||
+                event.target.id === 'nome-cliente' ||
+                event.target.id === 'nome-evento' ||
+                event.target.id === 'data-evento' ||
+                event.target.id === 'horario-evento' ||
+                event.target.id === 'link-playlist' ||
+                event.target.id === 'observacoes') {
+                atualizarPrevia();
+            }
+        });
+    </script>
+</body>
+</html>
