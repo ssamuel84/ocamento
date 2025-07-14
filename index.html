@@ -186,7 +186,7 @@
 
         .add-instrument,
         #gerar-orcamento,
-        #gerar-e-compartilhar { /* ID alterado */
+        #gerar-e-compartilhar { /* ID alterado para o botão de compartilhar */
             background-color: var(--cor-botoes);
             color: white;
             border: none;
@@ -474,14 +474,14 @@
         const previewInstrumentosTBody = document.querySelector('#preview-instrumentos tbody');
         const previewTotal = document.getElementById('preview-total');
         const observacoesText = document.getElementById('observacoes-text');
-        const gerarECompartilharBotao = document.getElementById('gerar-e-compartilhar'); // ID alterado
+        const gerarECompartilharBotao = document.getElementById('gerar-e-compartilhar'); // ID alterado no JS
 
-        let instrumentoCounter = 1; // Começa em 1 pois já temos 1 instrumento padrão (Piano)
+        let instrumentoCounter = 1; // Começa em 1 pois já temos 1 instrumento padrão (Piano) com ID 0
 
         // Adiciona um novo campo de instrumento dinamicamente
         adicionarInstrumentoBotao.addEventListener('click', function() {
             const novoInstrumentoDiv = document.createElement('div');
-            novoInstrumentoDiv.classList.add('instrument-row');
+            novoInstrumentoDiv.classList.add('instrumento-row');
             novoInstrumentoDiv.innerHTML = `
                 <div>
                     <label for="instrumento-${instrumentoCounter}">Nome do Instrumento:</label>
@@ -545,7 +545,7 @@
             previewInstrumentosTBody.innerHTML = ''; // Limpa a tabela antes de preencher
             let totalGeral = 0;
 
-            const allInstrumentRows = document.querySelectorAll('#instrumentos-container .instrument-row');
+            const allInstrumentRows = document.querySelectorAll('#instrumentos-container .instrumento-row');
 
             allInstrumentRows.forEach(row => {
                 const nomeInput = row.querySelector('.instrumento-nome');
@@ -558,8 +558,7 @@
                 const subtotal = qtde * valor;
 
                 if (qtde > 0 && valor > 0) { // Adiciona apenas instrumentos com quantidade e valor válidos
-                    const tr = previewInstrumentosTBody.insertRow();
-
+                    const tr = previewInstrumentosTBody.insertCell(); // insertCell retorna a celula
                     const tdNome = tr.insertCell();
                     tdNome.textContent = nome;
 
@@ -699,14 +698,18 @@
 
             // Geração do PDF como Blob para compartilhamento
             const pdfBlob = doc.output('blob');
-            const fileName = `Orcamento_Musical_${previewCliente.textContent.replace(/\s/g, '_') || 'Cliente'}_${previewEvento.textContent.replace(/\s/g, '_') || 'Evento'}.pdf`;
+            // Geração de um nome de arquivo mais amigável
+            const nomeClienteSanitizado = previewCliente.textContent.replace(/[^a-zA-Z0-9]/g, '_') || 'Cliente';
+            const nomeEventoSanitizado = previewEvento.textContent.replace(/[^a-zA-Z0-9]/g, '_') || 'Evento';
+            const fileName = `Orcamento_Musical_${nomeClienteSanitizado}_${nomeEventoSanitizado}.pdf`;
 
+            // Lógica de Compartilhamento
             if (navigator.share && navigator.canShare && navigator.canShare({ files: [new File([pdfBlob], fileName, { type: 'application/pdf' })] })) {
                 try {
                     await navigator.share({
                         files: [new File([pdfBlob], fileName, { type: 'application/pdf' })],
                         title: `Orçamento Musical - ${previewEvento.textContent}`,
-                        text: `Olá! Compartilho o orçamento musical para o evento "${previewEvento.textContent}" em ${previewData.textContent} às ${previewHorario.textContent}.`,
+                        text: `Olá! Segue o orçamento musical para o evento "${previewEvento.textContent}" em ${previewData.textContent} às ${previewHorario.textContent}.`,
                     });
                     console.log('PDF compartilhado com sucesso!');
                 } catch (error) {
@@ -726,6 +729,7 @@
 
         // Adiciona listener para recalcular a prévia em tempo real ao mudar campos
         document.getElementById('orcamento-form').addEventListener('input', function(event) {
+            // Verifica se o evento foi em um dos campos que afetam a prévia
             if (event.target.classList.contains('instrumento-nome') ||
                 event.target.classList.contains('instrumento-qtde') ||
                 event.target.classList.contains('instrumento-valor') ||
